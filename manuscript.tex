@@ -8,6 +8,7 @@
 \usetikzlibrary{arrows.meta}
 \usepackage[font=small,labelfont=bf]{caption}
 \usepackage{float}
+\usepackage[hyphens]{url}
 \usepackage[colorlinks=true,linkcolor=bandblue,citecolor=bandblue,urlcolor=bandblue]{hyperref}
 \definecolor{graphink}{HTML}{24344A}
 \definecolor{bandblue}{HTML}{16678A}
@@ -22,8 +23,6 @@
 \newcommand{\forest}{\mathcal F}
 \newcommand{\tree}{\mathcal T}
 \newcommand{\cactus}{\mathcal C}
-\newcommand{\figurecredit}{TikZ schematic drafted from the construction with OpenAI Codex (GPT-6-based) assistance.}
-\newcommand{\artifact}{\href{https://github.com/scmypapa/Polynomial-Kernelization-for-Maximum-Shortest-Cycle-Coverage-on-Planar-Graphs/tree/reproducibility-v2}{archived GitHub snapshot}}
 \raggedbottom
 \setlength{\emergencystretch}{1.5em}
 \title{Polynomial Kernelization for Maximum Shortest-Cycle\\ Coverage on Planar Graphs}
@@ -35,7 +34,7 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-Given a simple undirected planar graph with positive integer edge weights, a positive integer \(k\), and a nonnegative threshold \(T\), the \emph{Planar Maximum Shortest-Cycle Coverage} problem asks whether \(k\) distinct globally shortest simple cycles have an edge union of weight at least \(T\). Agrawal et al.\ asked whether the problem admits a polynomial kernel parameterized by \(k\). We give a deterministic polynomial-time kernel with total encoding length \(O(k^{300})\) bits, including the binary edge weights and threshold. In the planar dual, a minimum-cut cactus yields \(O(k)\) paths of ordinary cuts and \(O(k^2)\) exceptional cuts. The embedding organizes the ordinary cuts through monotone bands and nested same-side intervals. Two finite propagation stages and one-sided overlap charges allow a polynomial-size family of locally optimal selections to retain a global optimum. We compress the union of their primal cycles and then apply Frank--Tardos weight compression.
+Given a simple undirected planar graph with positive integer edge weights, a positive integer \(k\), and a nonnegative threshold \(T\), the \emph{Planar Maximum Shortest-Cycle Coverage} problem asks whether \(k\) distinct globally shortest simple cycles have an edge union of weight at least \(T\). Agrawal et al.\ asked whether the problem admits a polynomial kernel parameterized by \(k\). We give a deterministic polynomial-time kernel with total encoding length \(O(k^{200})\) bits, including the binary edge weights and threshold. In the planar dual, a minimum-cut cactus yields \(O(k)\) paths of ordinary cuts and \(O(k^2)\) exceptional cuts. The embedding organizes the ordinary cuts through monotone bands and nested same-side intervals. Two finite propagation stages and one-sided overlap charges allow a polynomial-size family of locally optimal selections to retain a global optimum. We compress the union of their primal cycles and then apply Frank--Tardos weight compression.
 \end{abstract}
 
 \section{Introduction and main theorem}
@@ -52,7 +51,7 @@ The instance is a no-instance when \(G\) is acyclic. We parameterize by \(k\).
 Positive weights imply that at threshold \(T=k\lambda\) the selected cycles must be pairwise edge-disjoint. Bentert et al.\ gave a polynomial kernel for this special case \cite{Bentert2025}. Agrawal et al.\ obtained a single-exponential parameterized algorithm for the planar diverse coverage problem and identified kernelization for coverage without a diversity constraint as an open problem \cite[Section~6]{Agrawal2026}.
 
 \begin{theorem}\label{thm:main}
-Planar Maximum Shortest-Cycle Coverage has a deterministic polynomial kernel parameterized by \(k\). The output is an equivalent simple planar instance with total encoding length \(O(k^{300})\) bits, including its binary edge weights and threshold.
+Planar Maximum Shortest-Cycle Coverage has a deterministic polynomial kernel parameterized by \(k\). The output is an equivalent simple planar instance with total encoding length \(O(k^{200})\) bits, including its binary edge weights and threshold.
 \end{theorem}
 
 The proof passes to minimum cuts in the planar dual. The cactus gives paths on which a cut is represented by a position. A band can couple choices across entire paths, and the graph of these path-level dependencies can have degree greater than two. We propagate a polynomial number of boundaries through the bands and across endpoint gaps. For a fixed optimum this yields blocks whose two-variable interactions form paths and cycles. The same-side overlap between blocks admits a one-sided bound that is tight at the optimum. Local dynamic programs can then replace each interaction component independently. Finally, the marked cuts yield a small graph and permit weight compression.
@@ -121,7 +120,7 @@ Contract each forest path and split the resulting vertex at the two ends of the 
 \begin{figure}[H]
 \centering
 \input{figures/path-split}
-\caption{Path contraction and splitting. The disk about \(P_r\) records the two side orders. After splitting, \(e_1,e_2\) bound a two-edge face and form one band. The dashed loop \(f\) cuts off a disk containing no other vertex. \figurecredit}
+\caption{Path contraction and splitting. The disk about \(P_r\) records the two side orders. After splitting, \(e_1,e_2\) bound a two-edge face and form one band. The dashed loop \(f\) cuts off a disk containing no other vertex.}
 \label{fig:split}
 \end{figure}
 
@@ -182,7 +181,7 @@ For fixed \(t\), set \(E_0=M_t\). A gap is \emph{hit at level \(i\)} when its in
 \begin{figure}[H]
 \centering
 \input{figures/marker-propagation}
-\caption{The two propagation rules. (a) A band transports the mark \(z\) to the opposite port. (b) The new mark \(x\) is an endpoint of the already hit gap \(H\) and now hits \(J=(u,v)\) on the opposite side. The inward endpoint \(v\) lies inside \(H\), so \(v\) generates no new hit at the next level. \figurecredit}
+\caption{The two propagation rules. (a) A band transports the mark \(z\) to the opposite port. (b) The new mark \(x\) is an endpoint of the already hit gap \(H\) and now hits \(J=(u,v)\) on the opposite side. The inward endpoint \(v\) lies inside \(H\), so \(v\) generates no new hit at the next level.}
 \label{fig:propagation}
 \end{figure}
 
@@ -229,7 +228,7 @@ An interval covering an open block and another block would lie in a gap containi
 \begin{figure}[H]
 \centering
 \input{figures/nested-overlap}
-\caption{Nested intervals and the overlap charge. All \(I_j\) contain \(m\), and \(w_j\) is the weight of \(I_j\). The left extremum \(x\) hits \(I_1,I_2\), and the right extremum \(y\) hits \(I_1\). Fixing the right charge at this witness gives \(B_m(y')\) for any replacement, which bounds its actual overlap from above. \figurecredit}
+\caption{Nested intervals and the overlap charge. All \(I_j\) contain \(m\), and \(w_j\) is the weight of \(I_j\). The left extremum \(x\) hits \(I_1,I_2\), and the right extremum \(y\) hits \(I_1\). Fixing the right charge at this witness gives \(B_m(y')\) for any replacement, which bounds its actual overlap from above.}
 \label{fig:overlap}
 \end{figure}
 
@@ -363,7 +362,7 @@ Totals \(H\) and cuts marked per plan & \(O(k^2)\)\\
 \bottomrule
 \end{tabular}
 \end{center}
-The product bounds the ordinary marks by \(O(k^{50})\). The \(O(k^2)\) exceptional cuts satisfy the same bound. In particular the total \(r\) is \(O(k^{75})\), which suffices for the stated exponent.
+The product bounds the ordinary marks by \(O(k^{50})\). Adding \(O(k^2)\) exceptional cuts gives \(r=O(k^{50})\).
 
 \subsection{Union-graph compression and simple planarization}
 Map the \(r\) marked global minimum cuts back to the original graph and take the union graph \(U\) of their \(r\) globally shortest cycles. Remove isolated vertices. The graph \(U\) has weighted girth \(\lambda\), since it contains a marked cycle and is a subgraph of \(G\). Lemma~\ref{lem:representativity} preserves a global optimum. Conversely, any shortest cycles of \(U\) are shortest cycles of \(G\).
@@ -388,10 +387,10 @@ Apply the Frank--Tardos algorithm in the form of Etscheid et al.\ \cite{Etscheid
 \]
 and preserves the sign of the inner product for all integral tests of \(\ell_1\)-norm at most \(N_0-1\). Unit-vector tests give positive new edge weights and a nonnegative threshold. For cycles \(C,D\), the test \((\chi_C-\chi_D,0)\) preserves their weight order and equality, hence preserves the family of globally shortest cycles. For each union \(F\), the test \((\chi_F,-1)\) preserves whether its weight reaches the threshold. The test norms are at most \(m+1\).
 
-The \(m+1\) coordinates have total encoding length \(O(m^4)\). The simple graph uses \(O(m\log(m+1))\) bits and \(k'=k\le r\) uses \(O(\log(r+1))\) bits. By \(r=O(k^{75})\), the complete encoding has length \(O(k^{300})\). All steps take deterministic polynomial time in the binary input length. This proves Theorem~\ref{thm:main}.
+The \(m+1\) coordinates have total encoding length \(O(m^4)\). The simple graph uses \(O(m\log(m+1))\) bits and \(k'=k\le r\) uses \(O(\log(r+1))\) bits. Since \(m=O(r)\) and \(r=O(k^{50})\), the complete encoding has length \(O(k^{200})\). All steps take deterministic polynomial time in the binary input length. This proves Theorem~\ref{thm:main}.
 
 \section{Finite checks and reproducibility}\label{sec:checks}
-The two Python scripts and their dependencies are available in the \artifact. The first checks row-based marking against exhaustive search on 120 models. The second checks band and gap propagation, component traces, interval coverage in self-paired blocks, and fixed overlap charges on 107 models. The dedicated fixtures include three self-paired layouts and layouts with two blocks in one original interval. Appendix~\ref{app:checks} gives the test procedures and counts. The checks start from known minimum cuts and sample local replacements. The general cactus construction, boundary-pattern enumeration, and weight compression are established by the proof.
+The two Python scripts and their dependencies are available in the archived GitHub snapshot.\footnote{\raggedright\url{https://github.com/scmypapa/Polynomial-Kernelization-for-Maximum-Shortest-Cycle-Coverage-on-Planar-Graphs/tree/reproducibility-v3}} The first checks row-based marking against exhaustive search on 120 models. The second checks band and gap propagation, component traces, interval coverage in self-paired blocks, and fixed overlap charges on 107 models. The dedicated fixtures include three self-paired layouts and layouts with two blocks in one original interval. Appendix~\ref{app:checks} gives the test procedures and counts. The checks start from known minimum cuts and sample local replacements. The general cactus construction, boundary-pattern enumeration, and weight compression are established by the proof.
 
 \clearpage
 \section{Generative AI declaration}\label{sec:ai}

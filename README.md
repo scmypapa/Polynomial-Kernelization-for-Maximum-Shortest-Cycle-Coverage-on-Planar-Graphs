@@ -1,6 +1,6 @@
 # Polynomial Kernelization for Maximum Shortest-Cycle Coverage on Planar Graphs
 
-[论文 PDF](./Polynomial-Kernelization-for-Maximum-Shortest-Cycle-Coverage-on-Planar-Graphs.pdf) · [论文 LaTeX 源文件](./manuscript.tex) · [审稿修订版归档](https://github.com/scmypapa/Polynomial-Kernelization-for-Maximum-Shortest-Cycle-Coverage-on-Planar-Graphs/tree/reproducibility-v2)
+[论文 PDF](./Polynomial-Kernelization-for-Maximum-Shortest-Cycle-Coverage-on-Planar-Graphs.pdf) · [论文 LaTeX 源文件](./manuscript.tex) · [审稿修订版归档](https://github.com/scmypapa/Polynomial-Kernelization-for-Maximum-Shortest-Cycle-Coverage-on-Planar-Graphs/tree/reproducibility-v3)
 
 稿件研究正整数加权平面图上的最大最短环覆盖问题。给定 $k$ 和阈值 $T$，判定能否选出 $k$ 条不同的全局最短简单环，使其边并集总权重至少为 $T$。
 
