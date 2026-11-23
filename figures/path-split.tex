@@ -1,0 +1,51 @@
+\begin{tikzpicture}[
+  x=1cm,y=1cm,font=\small,
+  vertex/.style={inner sep=0pt,circle,fill=graphink,minimum size=4pt},
+  portvertex/.style={inner sep=0pt,circle,draw=graphink,fill=white,line width=.8pt,minimum size=5pt},
+  forest/.style={draw=graphink,line width=1.2pt,line cap=round},
+  essential/.style={draw=bandblue,line width=.88pt,line cap=round},
+  inessential/.style={draw=gaprust,line width=.88pt,dash pattern=on 2.4pt off 1.8pt},
+  aux/.style={draw=graphink,line width=.75pt,densely dashed}]
+  \path[draw=graphink!45,fill=graphink!5,line width=.55pt,rounded corners=9pt]
+    (0.16,0.94) rectangle (4.90,1.56);
+  \coordinate (v0) at (.68,1.25);
+  \coordinate (v1) at (1.84,1.25);
+  \coordinate (v2) at (3.05,1.25);
+  \coordinate (v3) at (4.32,1.25);
+  \coordinate (u) at (2.94,2.76);
+  \draw[forest] (v0)--(v1)--(v2)--(v3);
+  \draw[essential] (v1) .. controls (1.90,1.95) and (2.31,2.55) .. (u);
+  \draw[essential] (v2) .. controls (3.37,1.89) and (3.36,2.53) .. (u);
+  \draw[inessential] (v1) .. controls (1.99,.44) and (2.86,.44) .. (v2);
+  \foreach \v in {v0,v1,v2,v3} {\node[vertex] at (\v) {};}
+  \node[portvertex,label={above:$u$}] at (u) {};
+  \node[bandblue] at (1.94,2.15) {$e_1$};
+  \node[bandblue] at (3.56,2.14) {$e_2$};
+  \node[gaprust] at (2.44,.45) {$f$};
+  \node[anchor=west] at (.26,1.84) {side 0};
+  \node[anchor=west] at (.26,.68) {side 1};
+  \node[anchor=west] at (4.39,1.25) {$P_r$};
+
+  \draw[graphink!75,line width=.75pt,-{Stealth[length=5pt]}] (5.38,1.45)--(7.74,1.45);
+  \node[align=center,font=\footnotesize] at (6.56,1.97) {contract \(P_r\)\\split by side};
+
+  \coordinate (r0) at (9.52,2.10);
+  \coordinate (r1) at (9.52,.89);
+  \coordinate (w) at (13.14,2.10);
+  \path[fill=bandblue!9]
+    (r0) .. controls (10.57,2.78) and (12.05,2.78) .. (w)
+    .. controls (12.05,1.42) and (10.57,1.42) .. (r0) -- cycle;
+  \draw[essential] (r0) .. controls (10.57,2.78) and (12.05,2.78) .. (w);
+  \draw[essential] (r0) .. controls (10.57,1.42) and (12.05,1.42) .. (w);
+  \draw[aux] (r0)--(r1);
+  \draw[inessential] (r1) .. controls (11.48,1.50) and (11.48,.30) .. (r1);
+  \node[portvertex,label={left:$(r,0)$}] at (r0) {};
+  \node[portvertex,label={left:$(r,1)$}] at (r1) {};
+  \node[portvertex,label={right:$u$}] at (w) {};
+  \node[bandblue,anchor=south] at (11.34,2.63) {$e_1$};
+  \node[bandblue,anchor=north] at (11.34,1.60) {$e_2$};
+  \node[graphink,anchor=east,align=right,font=\footnotesize] at (9.35,1.49) {auxiliary\\edge};
+  \node[gaprust,anchor=west] at (11.10,.89) {$f$};
+  \node at (2.57,-.01) {\textbf{(a)}~A forest path in its embedding};
+  \node at (11.05,-.01) {\textbf{(b)}~The split graph};
+\end{tikzpicture}

@@ -1,0 +1,47 @@
+\begin{tikzpicture}[
+  x=1cm,y=1cm,font=\small,
+  track/.style={draw=graphink!52,line width=.6pt},
+  band/.style={draw=bandblue,line width=2.1pt,line cap=butt},
+  gap/.style={draw=gaprust,line width=1.45pt,line cap=butt},
+  marker/.style={circle,draw=bandblue,line width=.85pt,fill=white,inner sep=0pt,minimum size=5pt},
+  endpt/.style={circle,draw=gaprust,line width=.85pt,fill=white,inner sep=0pt,minimum size=4.5pt}]
+  \draw[track] (.82,2.34)--(6.45,2.34);
+  \draw[track] (.82,1.04)--(6.45,1.04);
+  \draw[band] (1.52,2.34)--(5.51,2.34);
+  \draw[band] (1.91,1.04)--(6.02,1.04);
+  \foreach \u in {1.52,5.51} {\draw[bandblue,line width=.7pt] (\u,2.22)--(\u,2.46);}
+  \foreach \u in {1.91,6.02} {\draw[bandblue,line width=.7pt] (\u,.92)--(\u,1.16);}
+  \draw[bandblue,line width=.75pt,-{Stealth[length=4.8pt]}]
+    (3.30,2.21) .. controls (3.51,1.83) and (4.15,1.60) .. (4.32,1.18)
+    node[midway,above right,inner sep=1pt] {$f_B$};
+  \node[marker] at (3.24,2.34) {};
+  \node[marker] at (4.37,1.04) {};
+  \node[anchor=east] at (.74,2.34) {$P_r$};
+  \node[anchor=east] at (.74,1.04) {$P_{r'}$};
+  \node[bandblue,above] at (3.24,2.48) {$z\in M_j$};
+  \node[bandblue,below] at (4.37,.91) {$f_B(z)\in M_{j+1}$};
+
+  \draw[graphink!20,line width=.55pt] (6.69,.54)--(6.69,2.88);
+  \draw[track] (7.7,2.34)--(14.13,2.34);
+  \draw[track] (7.7,1.04)--(14.13,1.04);
+  \node[anchor=east,font=\footnotesize] at (7.65,2.34) {side 1};
+  \node[anchor=east,font=\footnotesize] at (7.65,1.04) {side 0};
+  \draw[band] (9.52,2.34)--(13.77,2.34);
+  \node[marker] at (9.52,2.34) {};
+  \node[marker] at (13.77,2.34) {};
+  \node[circle,fill=bandblue,inner sep=1.6pt] at (12.71,2.34) {};
+  \node[bandblue,above] at (11.10,2.39) {$H$};
+  \node[bandblue,above] at (9.52,2.47) {$x\in E_i$};
+  \node[bandblue,above] at (12.71,2.47) {$y\in E_{i-1}$};
+  \draw[gap] (8.00,1.04)--(11.18,1.04);
+  \node[endpt] at (8.00,1.04) {};
+  \node[endpt] at (11.18,1.04) {};
+  \draw[gaprust,line width=.69pt,-{Stealth[length=4.5pt]}] (9.52,2.20)--(9.52,1.16);
+  \draw[graphink!57,densely dotted,line width=.65pt] (11.18,1.17)--(11.18,2.23);
+  \node[gaprust,below] at (8.00,.92) {$u$};
+  \node[gaprust,below] at (9.52,.92) {$J$};
+  \node[gaprust,below] at (11.18,.92) {$v$};
+  \node[anchor=west,font=\footnotesize] at (11.46,1.55) {$v$ lies inside $H$};
+  \node at (3.48,.02) {\textbf{(a)}~Transport on a band};
+  \node at (10.93,.02) {\textbf{(b)}~Insert the ends of a newly hit gap};
+\end{tikzpicture}

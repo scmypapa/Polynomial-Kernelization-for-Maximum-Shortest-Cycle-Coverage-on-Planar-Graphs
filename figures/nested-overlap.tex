@@ -1,0 +1,36 @@
+\begin{tikzpicture}[
+  x=1cm,y=1cm,font=\small,
+  track/.style={draw=graphink!65,line width=.65pt},
+  allinterval/.style={draw=graphink!70,line width=.95pt},
+  winner/.style={draw=bandblue,line width=1.45pt},
+  included/.style={circle,fill=graphink,inner sep=0pt,minimum size=4.5pt}]
+  \path[fill=graphink!8,rounded corners=2pt] (1.47,.64) rectangle (3.77,1.01);
+  \path[fill=graphink!8,rounded corners=2pt] (7.08,.64) rectangle (9.47,1.01);
+  \draw[track,-{Stealth[length=4pt]}] (.75,.82)--(10.49,.82);
+  \node[below=2pt] at (1.78,.64) {$U$};
+  \node[below=2pt] at (9.13,.64) {$V$};
+  \draw[graphink!56,densely dotted,line width=.7pt] (3.05,.87)--(3.05,3.04);
+  \draw[gaprust,densely dashed,line width=.75pt] (5.18,.87)--(5.18,3.04);
+  \draw[graphink!56,densely dotted,line width=.7pt] (8.38,.87)--(8.38,3.04);
+  \node[below=2pt] at (3.05,.64) {$x$};
+  \node[gaprust,below=2pt] at (5.18,.64) {$m$};
+  \node[below=2pt] at (8.38,.64) {$y$};
+
+  \foreach \l/\r/\h/\k/\sty in {1.15/9.94/2.88/1/winner,
+                               2.38/7.33/2.21/2/allinterval,
+                               4.23/6.45/1.54/3/allinterval} {
+    \draw[\sty] (\l,\h)--(\r,\h);
+    \draw[\sty] (\l,\h-.09)--(\l,\h+.09) (\r,\h-.09)--(\r,\h+.09);
+    \node[anchor=east] at (\l-.14,\h) {$I_{\k}$};
+  }
+  \foreach \a in {(3.05,2.88),(8.38,2.88),(3.05,2.21)}
+    {\node[included] at \a {};}
+  \node[gaprust,circle,fill=gaprust,inner sep=1.3pt] at (5.18,2.88) {};
+  \node[gaprust,circle,fill=gaprust,inner sep=1.3pt] at (5.18,2.21) {};
+  \node[gaprust,circle,fill=gaprust,inner sep=1.3pt] at (5.18,1.54) {};
+
+  \draw[graphink!20,line width=.55pt] (10.81,.65)--(10.81,3.13);
+  \node[anchor=west] at (11.15,2.75) {$A_m(x)=w_1+w_2$};
+  \node[anchor=west] at (11.15,2.08) {$B_m(y)=w_1$};
+  \node[bandblue,anchor=west] at (11.15,1.13) {$\mathrm{overlap}=w_1$};
+\end{tikzpicture}

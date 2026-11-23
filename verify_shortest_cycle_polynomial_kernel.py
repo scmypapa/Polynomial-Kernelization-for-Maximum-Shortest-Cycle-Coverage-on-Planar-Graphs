@@ -28,6 +28,7 @@ def split_rotation(weights, paths, manual=None):
         rotation = nx.PlanarEmbedding()
         rotation.set_data(manual)
         rotation.check_structure()
+    denominator = 8 * (len(graph) + len(weights) + 2)
     owner = {}
     f = set()
     side = {}
@@ -54,7 +55,7 @@ def split_rotation(weights, paths, manual=None):
                 f.add(edge(v, b))
             events = [(v, w) for w in clockwise + list(reversed(anticlockwise))]
             for i, dart in enumerate(events, 1):
-                coord[dart] = Q(j) + Q(i, 3 * (len(events) + 1))
+                coord[dart] = Q(j) + Q(i, denominator)
             rows.append(([(v, w) for w in clockwise], [(v, w) for w in anticlockwise]))
         side[p][0].extend(d for first, _ in rows for d in first)
         side[p][1].extend(d for _, second in reversed(rows) for d in second)
@@ -122,6 +123,7 @@ def extract_bands(rotation, xy, weights, f, paths):
     part = {d: j for j, comp in enumerate(components) for d in comp}
     ordered_events = {u: sorted(xy[d] for d in group if d in pure)
                       for u, group in rotation.items()}
+    padding = Q(1, 32 * (sum(map(len, paths)) + len(weights) + 2))
     bands, matched = [], set()
     for j, comp in enumerate(components):
         if j in matched:
@@ -136,8 +138,7 @@ def extract_bands(rotation, xy, weights, f, paths):
             events = [Q(-1)] + ordered_events[u] + [Q(len(paths[u[0]]))]
             lo, hi = events.index(xy[dst[0]]), events.index(xy[dst[-1]])
             assert events[lo:hi + 1] == [xy[d] for d in dst]
-            ends = ((2 * events[lo] + events[lo - 1]) / 3,
-                    (2 * events[hi] + events[hi + 1]) / 3)
+            ends = events[lo] - padding, events[hi] + padding
             ports.append(Port(*u, ends, tuple(dst)))
         assert set(map(mate, ports[0].darts)) == set(ports[1].darts)
         bands.append(tuple(ports))
@@ -297,7 +298,7 @@ def evaluate(instance, rand, k, repeats, prescribed=(), fixed_mode=False):
                 x = (a * (e - b) - b * (c - a)) / ((e - b) - (c - a))
                 j = int(x) + 1
                 line = paths[p]
-                if Q(j - 1) + Q(1, 3) < x < j and x not in all_marks[p]:
+                if Q(j) - Q(3, 4) < x < Q(j) - Q(1, 4) and x not in all_marks[p]:
                     focus = edge(line[j - 1], line[j])
                     cut_positions[focus] = (p, x)
                     prescribed = [[focus, *[d for d in cuts if d not in cut_positions][:k - 1]]]
@@ -305,7 +306,7 @@ def evaluate(instance, rand, k, repeats, prescribed=(), fixed_mode=False):
             if prescribed:
                 break
         assert prescribed
-    stats = Counter()
+    stats = Counter(models=1)
     samples = list(prescribed) + [rand.sample(sorted(cuts, key=repr), k) for _ in range(repeats)]
     for selected in samples:
         assert len(selected) == k and len(set(selected)) == k
@@ -317,14 +318,15 @@ def evaluate(instance, rand, k, repeats, prescribed=(), fixed_mode=False):
         for (p, a), (q, b) in combinations(points, 2):
             if p == q:
                 compares.append((p, a, b))
-        for p, a in points:
+        for source_index, (p, a) in enumerate(points):
             for side in range(2):
                 arrival = layout.step(p, side, a)
                 if arrival:
                     q, other, x, (b, i) = arrival
-                    for r, y in points:
-                        if r == q and any(bb == b and ii == 1 - i and z.ends[0] < y < z.ends[1]
-                                          for bb, ii, z in layout.ports[q, other]):
+                    for target_index, (r, y) in enumerate(points):
+                        if (source_index != target_index and r == q
+                                and any(bb == b and ii == 1 - i and z.ends[0] < y < z.ends[1]
+                                        for bb, ii, z in layout.ports[q, other])):
                             compares.append((q, x, y))
         cuts_at = []
         for p, x, y in compares:
@@ -337,8 +339,10 @@ def evaluate(instance, rand, k, repeats, prescribed=(), fixed_mode=False):
         t = next(r for r in range(0, limit, d) if r not in stability)
         raw, fine, deep = [layout.marks(r) for r in [t, t + 1, t + d]]
         extra = raw
+        seed_count = sum(map(len, raw.values()))
         for s in range(2 * k + 1):
             plus = layout.add_gap_ends(extra)
+            assert sum(map(len, plus.values())) <= (1 + 8 * (s + 1)) * seed_count
             if all(layout.hit(p, side, x, extra) == layout.hit(p, side, x, plus)
                    for p, x in points for side in range(2)):
                 break
@@ -433,7 +437,7 @@ def check_selection(layout, bands, xy, sides, trivial, weights,
             r = label(raw, a.track, xy[d1])
             u = label(raw, b.track, xy[d2])
             packet_edges[band, r, u].append((edge(*d1), d1, d2))
-    essential_checks = Counter()
+    essential_checks = Counter(multi_block_intervals=sum(len(blocks) > 1 for blocks in raw_blocks.values()))
     variant_covers = [exceptions | frozenset().union(*(cuts[d] for d in v)) for v in variants]
     for (band, r, u), packet in packet_edges.items():
         a, b = bands[band]
@@ -458,6 +462,11 @@ def check_selection(layout, bands, xy, sides, trivial, weights,
                 continue
             if r in self_regions:
                 relevant, = raw_blocks[r]
+                for e, d1, d2 in packet:
+                    left, right = sorted((xy[d1], xy[d2]))
+                    for cut in eligible_by_block[relevant]:
+                        assert supported(e, cut) == (left < positions[cut][1] < right)
+                        essential_checks['self_interval_checks'] += 1
                 for v, cover in zip(replacement_by_block, variant_covers):
                     assert all((e in cover) == any(supported(e, d) for d in v[relevant])
                                for e in edges)
@@ -558,7 +567,8 @@ def check_selection(layout, bands, xy, sides, trivial, weights,
         if len(involved) >= 2:
             assert all(bl[0] in self_regions or profile_closed(bl, side) for bl in involved)
     exact_in = Counter()
-    for v in variants:
+    charge_sides = {}
+    for variant_index, v in enumerate(variants):
         direct = frozenset().union(*(cuts[e] for e in v))
         for p in range(len(layout.tips)):
             order = sorted((bl for bl in chosen_by_block if bl[0][0] == p),
@@ -567,7 +577,7 @@ def check_selection(layout, bands, xy, sides, trivial, weights,
                 es = {e for e in trivial if sides[e] == (p, s)}
                 blocks = [[e for e in eligible_by_block[bl] if e in v] for bl in order]
                 covered = [frozenset().union(*(cuts[e] for e in block)) & es for block in blocks]
-                total = sum(weights[e] for c in covered for e in c)
+                total = relaxed = sum(weights[e] for c in covered for e in c)
                 for j, (left, right) in enumerate(zip(covered, covered[1:])):
                     (r, am), (z, bm) = order[j:j + 2]
                     cut = am[2]
@@ -575,17 +585,81 @@ def check_selection(layout, bands, xy, sides, trivial, weights,
                     b = min(positions[e][1] for e in blocks[j + 1])
                     assert a < cut < b
                     spans = {e for e in es if min(xy[e], xy[mate(e)]) < cut < max(xy[e], xy[mate(e)])}
-                    loss = min(sum(weights[e] for e in spans & left if min(xy[e], xy[mate(e)]) < a < max(xy[e], xy[mate(e)])),
-                               sum(weights[e] for e in spans & right if min(xy[e], xy[mate(e)]) < b < max(xy[e], xy[mate(e)])))
+                    prefix = tuple(sum(weights[e] for e in spans & part
+                                       if min(xy[e], xy[mate(e)]) < extreme < max(xy[e], xy[mate(e)]))
+                                   for part, extreme in [(left, a), (right, b)])
+                    loss = min(prefix)
                     assert loss == sum(weights[e] for e in left & right)
+                    key = p, s, j
+                    if variant_index == 0:
+                        charge_sides[key] = prefix.index(loss)
+                    charge = prefix[charge_sides[key]]
+                    assert loss <= charge
                     total -= loss
-                    exact_in["overlap_checks"] += 1
+                    relaxed -= charge
+                    exact_in['overlap_checks'] += 1
+                    if variant_index:
+                        exact_in['fixed_charge_replacement_checks'] += 1
+                        exact_in['strict_charge_checks'] += int(loss < charge)
                 assert total == sum(weights[e] for e in es & direct)
+                assert relaxed <= total
+                if variant_index == 0:
+                    assert relaxed == total
     return dict(exact_in + essential_checks, selections=1, replacements=len(variants) - 1,
                 loop_bands=sum(a.track == b.track for a, b in bands),
                 two_port_nodes=sum(links.degree(bl) == 2 for bl in links),
                 closed=sum(profile_closed(bl, s) for bl in chosen_by_block for s in range(2)),
                 self_regions=len(self_regions), links=links.number_of_edges())
+
+
+def cross_side_track(length, arcs, scale=1):
+    base, rows = make_spine([length])
+    row, = rows
+    chords = {edge(row[a], row[b]): 1 for a, b in arcs}
+    _, weights, cuts = weighted_tree_model(base, chords, scale)
+    rotation = {'start': [row[0]], 'end': [row[-1]]}
+    for j, v in enumerate(row):
+        previous = 'start' if j == 0 else row[j - 1]
+        following = 'end' if j == length else row[j + 1]
+        above = [row[b] for a, b in arcs if a == j]
+        below = [row[a] for a, b in arcs if b == j]
+        rotation[v] = [previous, *above, following, *below]
+    return base, rows, weights, cuts, rotation
+
+
+def multi_block_track():
+    length = 20
+    rows = [[f'{r}:{j}' for j in range(length + 1)] for r in range(3)]
+    upper, middle, lower = rows
+    base = nx.Graph()
+    for r, row in enumerate(rows):
+        nx.add_path(base, ['root', *row, f'tip{r}'])
+    above, below = defaultdict(list), defaultdict(list)
+    chords = {}
+    for row, indices, outgoing, incoming in [(upper, (3, 11), above, below),
+                                              (lower, (4, 7, 17), below, above)]:
+        for j in indices:
+            chords[edge(middle[j], row[j])] = 2
+            outgoing[middle[j]].append(row[j])
+            incoming[row[j]].append(middle[j])
+    # Nested intervals allow the smaller prefix to switch under replacement.
+    for a, b in [(5, 10), (6, 9)]:
+        u, v = middle[a], middle[b]
+        above[u].append(v)
+        above[v].append(u)
+        chords[edge(u, v)] = 3
+    rotation = {'root': [row[0] for row in rows]}
+    for r, row in enumerate(rows):
+        tip = f'tip{r}'
+        rotation[tip] = [row[-1]]
+        for j, v in enumerate(row):
+            previous = 'root' if j == 0 else row[j - 1]
+            following = tip if j == length else row[j + 1]
+            rotation[v] = [previous, *above[v], following, *below[v]]
+    _, weights, cuts = weighted_tree_model(base, chords)
+    seeds = [[edge(middle[a], middle[a + 1]), edge(middle[b], middle[b + 1])]
+             for a, b in [(5, 8), (6, 8), (6, 9)]]
+    return (base, rows, weights, cuts, rotation), seeds
 
 
 def main():
@@ -607,35 +681,24 @@ def main():
         rows = instance[1]
         seeds = [[edge(row[i - 1], row[i]) for row in rows] for i in range(4, 21)]
         counts.update(evaluate(instance, rng, m, 12, seeds))
-    for n in [14, 36]:
-        base, rows = make_spine([n])
-        row, = rows
-        chords = {edge(row[i], row[i + 3]): 1 for i in range(1, n - 3)}
-        _, weights, cuts = weighted_tree_model(base, chords)
-        clockwise = {"start": [row[0]], "end": [row[-1]]}
-        for i, u in enumerate(row):
-            prev = "start" if i == 0 else row[i - 1]
-            following = "end" if i == n else row[i + 1]
-            ahead = [row[i + 3]] if i < n - 3 and edge(u, row[i + 3]) in chords else []
-            behind = [row[i - 3]] if i >= 3 and edge(u, row[i - 3]) in chords else []
-            clockwise[u] = [prev, *ahead, following, *behind]
-        seeds = [[edge(row[i - 1], row[i]), edge(row[i], row[i + 1]),
-                  edge(row[i + 1], row[i + 2])] for i in range(4, n - 4)]
-        counts.update(evaluate((base, rows, weights, cuts, clockwise), rng, 3, 12, seeds))
-    n = 35
-    base, rows = make_spine([n])
-    row, = rows
-    arcs = [(i, i + 3) for i in range(1, 8)] + [(i, i - 2) for i in range(14, n)]
-    chords = {edge(row[i], row[j]): 1 for i, j in arcs}
-    _, weights, cuts = weighted_tree_model(base, chords)
-    clockwise = {"start": [row[0]], "end": [row[-1]]}
-    for i, v in enumerate(row):
-        prev = "start" if i == 0 else row[i - 1]
-        following = "end" if i == n else row[i + 1]
-        above = [row[b] for a, b in arcs if a == i]
-        below = [row[a] for a, b in arcs if b == i]
-        clockwise[v] = [prev, *above, following, *below]
-    counts.update(evaluate((base, rows, weights, cuts, clockwise), rng, 3, 3, fixed_mode=True))
+    for length in [14, 36]:
+        arcs = [(j, j + 3) for j in range(1, length - 3)]
+        fixture = cross_side_track(length, arcs)
+        row, = fixture[1]
+        seeds = [[edge(row[j - 1], row[j]), edge(row[j], row[j + 1]),
+                  edge(row[j + 1], row[j + 2])] for j in range(4, length - 4)]
+        counts.update(evaluate(fixture, rng, 3, 12, seeds))
+    for length, forward, backward, start in [(38, 2, 2, 14), (46, 5, 2, 15), (45, 2, 4, 17)]:
+        arcs = ([(j, j + forward) for j in range(1, 8)]
+                + [(j, j - backward) for j in range(start, length)])
+        fixture = cross_side_track(length, arcs, 2**140)
+        checks = evaluate(fixture, rng, 3, 0, fixed_mode=True)
+        assert checks['self_regions'] and checks['self_interval_checks']
+        counts.update(checks)
+    fixture, seeds = multi_block_track()
+    checks = evaluate(fixture, Random(55), 2, 0, seeds)
+    assert checks['multi_block_intervals'] == len(seeds) and checks['strict_charge_checks'] > 0
+    counts.update(checks)
     print(dict(counts))
     assert counts["two_port_nodes"] > 0 and counts["self_regions"] > 0
     print("geometry and inessential-overlap checks passed")
